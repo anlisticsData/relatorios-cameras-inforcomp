@@ -1,0 +1,11 @@
+{
+    "name": "edi/estacionaments",
+    "autoload": {
+        "psr-4": {
+            "Edi\\Estacionaments\\": "src/"
+        }
+    },
+    "require": {
+        "fpdf/fpdf": "^1.85"
+    }
+}

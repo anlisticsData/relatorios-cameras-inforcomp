@@ -1,0 +1,33 @@
+   print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+
+           $stmt->debugDumpParams();
+
+
+
+           select m.codigo ,p.description as 'portaria',m.placa,c.description as 'tipo',m.created_at 
+FROM movimentoscameras m 
+	inner join cameras c on c.id =m.portatirasensor
+	inner join portarias p on p.id =m.codigosensor
+	where  m.placa ='FNA3J67' and   (m.created_at     like '%2022-10-28%') 
+	order by m.created_at asc
+   
+
+select  placa ,count(codigo) 
+FROM movimentoscameras  where portatirasensor=1 and   (created_at     like '%2022-10-28%') 
+group  by placa 
+
+
+
+select  placa ,count(codigo) 
+FROM movimentoscameras  where portatirasensor=2 and   (created_at     like '%2022-10-28%') 
+group  by placa  
+
+
+
+
+
+
+  select  placa ,count(codigo) 
+                FROM movimentoscameras  where portatirasensor=1 and   (created_at     like '%2022-10-28%') 
+                group  by placa 
+                
