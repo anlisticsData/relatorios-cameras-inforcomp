@@ -196,7 +196,8 @@ class PDF extends FPDF
           $R=$detalhe['color'][0];
           $G=$detalhe['color'][1];
           $B=$detalhe['color'][2];
-          $participacao = number_format(($detalhe['participacao']/$detalhes['total'])*100,2);
+          
+          $participacao = (isset($detalhe['participacao']) && $detalhe['participacao'] !=0) ? number_format(($detalhe['participacao']/$detalhes['total'])*100,2):0;
           $width = $participacao / 60 * 100;
           $this->Cell(68,10,utf8_decode($detalhe['observacaotitle']),$this->header_table_border,0,'L');
           $this->Cell(100,10,"",$this->header_table_border,0,'C');

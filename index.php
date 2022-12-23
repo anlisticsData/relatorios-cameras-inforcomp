@@ -10,8 +10,8 @@
 
 <ul>
     <li><a href="relatorio1.php">Relatorio 1</a></li>
-    <li><a href="relatorio2.php">Relatorio 2</a></li>
-    <li><a href="relatorio3.php">Relatorio 3</a></li>
+    <li><a href="relatoriocarrosfechados.php">Relatorio 2</a></li>
+    <li><a href="relatoriocarrosplacas.php">Relatorio 3</a></li>
 
 </ul>
     

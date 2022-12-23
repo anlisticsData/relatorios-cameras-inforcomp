@@ -17,7 +17,17 @@ $RelatoriosRepository =   new RelatoriosRepository(getContectionContext("inforpa
  
 //$placas = $RelatoriosRepository->placasQueEntraraoMaisNaoSairam($_GET['dt']);
 
-$dataD=$_GET['dt'];
+$dataInit=$_GET['dtinit'];
+$dataIfim=$_GET['dtfim'];
+
+
+
+$y=$RelatoriosRepository->TempoDePermanenciaPorDiaPorPlacaEPeriodo($dataInit,$dataIfim);
+
+print_r($y);
+
+/*
+
 $placas =  $RelatoriosRepository->getPlacas($dataD);
 $t=[];
 foreach($placas as $k=>$y){
@@ -35,6 +45,7 @@ print_r($t);
 
 
 
+*/
 
 
 
