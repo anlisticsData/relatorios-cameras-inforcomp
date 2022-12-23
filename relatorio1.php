@@ -199,18 +199,20 @@ class PDF extends FPDF
           $participacao = number_format(($detalhe['participacao']/$detalhes['total'])*100,2);
           $width = $participacao / 60 * 100;
           $this->Cell(68,10,utf8_decode($detalhe['observacaotitle']),$this->header_table_border,0,'L');
-          $this->Cell(80,10,"",$this->header_table_border,1,'C');
+          $this->Cell(100,10,"",$this->header_table_border,0,'C');
+          $this->Cell(25,10,sprintf("%s%%",$participacao),$this->header_table_border,1,'C');
+
           $this->SetY($this->GetY()-10);
           $this->SetX($this->GetX()+60);
           $this->SetFillColor($R,$G,$B);
           if($width==0){
             $this->SetFillColor(255,255,255);
-            $this->Cell(88,10,sprintf("%s%%",$participacao),$this->header_table_border,1,'C',true);
+            $this->Cell(88,10,"",$this->header_table_border,1,'C',true);
           }else{
              if($width > 70){
-              $this->Cell($width-45,10,sprintf("%s%%",$participacao),$this->header_table_border,1,'R',true);
+              $this->Cell($width-45,10,"",$this->header_table_border,1,'R',true);
              }else{
-              $this->Cell($width,10,sprintf("%s%%",$participacao),$this->header_table_border,1,'R',true);
+              $this->Cell($width,10,"",$this->header_table_border,1,'R',true);
              }
           }
 
