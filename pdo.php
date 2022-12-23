@@ -28,14 +28,12 @@ foreach($placas as $k=>$y){
 
     }
    
-
-   
 }
 
 
-
-
 print_r($t);
+
+
 
 
 

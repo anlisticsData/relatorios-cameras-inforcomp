@@ -61,17 +61,56 @@ class RelatoriosRepository{
 
     public function TempoDePermanenciaPorDiaCarroQueEntrouESaiuMaisTempo($placa,$dataLike){
             $movimentosPares = [];
+            $calculoDeMovimentacao = [];
             try{
                 $movimentoDoDia=$this->historicoDeMovimentosPorPlacas($dataLike,$placa);
                 if(is_countable($movimentoDoDia) && count($movimentoDoDia) % 2 == 0){
                     $movimentosPares[]=$movimentoDoDia;
                 }
+                foreach($movimentosPares as $key=>$movimento){
+                    $size = count($movimento);
+                    $end = intval($size/2);
+                    $entradas=[];
+                    $saidas=[];
+                    foreach($movimento as $m){
+                       if(is_countable($m) && count($m)!=0){
+                            if($m['portatirasensor']==1){
+                                $entradas[]=$m;
+                            }else{
+                                $saidas[]=$m;
+                            }
+                       }
+                    }
+                    
+                    print_r([$entradas,$saidas]);
+                    
+                    /*
+                    for($next=0; $next < $end;$next++){
+                        $intervalo = 0;
+                        if(  count($entradas[$next]) > 0 && count($saidas[$next])>0){
+                            $calculoDeMovimentacao[]=array(
+                                "entradaID"=>$entradas[$next]['codigo'],
+                                "saidaID"=>$saidas[$next]['codigo'],
+                                "placa"=>$entradas[$next]['placa'],
+                                "portaria"=>$entradas[$next]['portaria'],
+                                "sentidoEntrada"=>$entradas[$next]['portatirasensor'],
+                                "sentidoEntradaTipo"=>$entradas[$next]['tipo'],
+                                "sentidoEntradaCreated_at"=>$entradas[$next]['created_at'],
+                                "sentidoSaida"=>$saidas[$next]['portatirasensor'],
+                                "sentidoSaidaTipo"=>$saidas[$next]['tipo'],
+                                "sentidoSaidaCreated_at"=>$saidas[$next]['created_at'],
+                                "permanecia" => $intervalo
+                            );
+                        } 
+                        return;
+                    }
+                    */
 
-
-                
+                    
+                }
             }catch(Exception $e){}
 
-            return $movimentosPares;
+            return $calculoDeMovimentacao;
     }
 
 
