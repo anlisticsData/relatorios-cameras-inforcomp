@@ -10,6 +10,20 @@ class RelatoriosRepository{
         $this->connection =  $connection;
     }
 
+   private function diffData($dataEntrada,$dataSaida){
+
+
+        $data1 =$dataEntrada;
+        $data2 =$dataSaida;
+        $unix_data1 = strtotime($data1);
+        $unix_data2 = strtotime($data2);
+        $nHoras   = ($unix_data2 - $unix_data1) / 3600;
+        $nMinutos = (($unix_data2 - $unix_data1) % 3600) / 60;
+
+        return sprintf('%02d:%02d', abs($nHoras), abs($nMinutos));
+
+    }
+
 
     public function placasQueEntraraoMaisNaoSairam($dataLike){
         $placas = array(
@@ -82,29 +96,30 @@ class RelatoriosRepository{
                        }
                     }
                     
-                    print_r([$entradas,$saidas]);
-                    
-                    /*
                     for($next=0; $next < $end;$next++){
                         $intervalo = 0;
-                        if(  count($entradas[$next]) > 0 && count($saidas[$next])>0){
-                            $calculoDeMovimentacao[]=array(
-                                "entradaID"=>$entradas[$next]['codigo'],
-                                "saidaID"=>$saidas[$next]['codigo'],
-                                "placa"=>$entradas[$next]['placa'],
-                                "portaria"=>$entradas[$next]['portaria'],
-                                "sentidoEntrada"=>$entradas[$next]['portatirasensor'],
-                                "sentidoEntradaTipo"=>$entradas[$next]['tipo'],
-                                "sentidoEntradaCreated_at"=>$entradas[$next]['created_at'],
-                                "sentidoSaida"=>$saidas[$next]['portatirasensor'],
-                                "sentidoSaidaTipo"=>$saidas[$next]['tipo'],
-                                "sentidoSaidaCreated_at"=>$saidas[$next]['created_at'],
-                                "permanecia" => $intervalo
-                            );
-                        } 
-                        return;
+                        if(isset($entradas[$next])){
+                            if(is_countable($entradas[$next])  && is_countable($saidas[$next])){
+                                $intervalo = $this->diffData($entradas[$next]['created_at'],$saidas[$next]['created_at']);
+                                $calculoDeMovimentacao[]=array(
+                                    "entradaID"=>$entradas[$next]['codigo'],
+                                    "saidaID"=>$saidas[$next]['codigo'],
+                                    "placa"=>$entradas[$next]['placa'],
+                                    "portaria"=>$entradas[$next]['portaria'],
+                                    "sentidoEntrada"=>$entradas[$next]['portatirasensor'],
+                                    "sentidoEntradaTipo"=>$entradas[$next]['tipo'],
+                                    "sentidoEntradaCreated_at"=>$entradas[$next]['created_at'],
+                                    "sentidoSaida"=>$saidas[$next]['portatirasensor'],
+                                    "sentidoSaidaTipo"=>$saidas[$next]['tipo'],
+                                    "sentidoSaidaCreated_at"=>$saidas[$next]['created_at'],
+                                    "permanecia" => $intervalo
+                                );
+                            }
+                        }
+                       
+                      
                     }
-                    */
+                  
 
                     
                 }
