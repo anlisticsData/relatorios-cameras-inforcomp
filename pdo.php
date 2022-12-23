@@ -15,9 +15,27 @@ error_reporting(E_ALL);
 
 $RelatoriosRepository =   new RelatoriosRepository(getContectionContext("inforpark_0005_0005","dev","@Dev1234","localhost"));
  
-$placas = $RelatoriosRepository->placasQueEntraraoMaisNaoSairam($_GET['dt']);
+//$placas = $RelatoriosRepository->placasQueEntraraoMaisNaoSairam($_GET['dt']);
 
-print_r($placas);
+$dataD=$_GET['dt'];
+$placas =  $RelatoriosRepository->getPlacas($dataD);
+$t=[];
+foreach($placas as $k=>$y){
+    $r =  $RelatoriosRepository->TempoDePermanenciaPorDiaCarroQueEntrouESaiuMaisTempo($y['placa'],$dataD);
+
+    if(count($r)>0){
+        $t[]=$r ;
+
+    }
+   
+
+   
+}
+
+
+
+
+print_r($t);
 
 
 

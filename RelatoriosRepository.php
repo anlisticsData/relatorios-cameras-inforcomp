@@ -59,6 +59,21 @@ class RelatoriosRepository{
     }
 
 
+    public function TempoDePermanenciaPorDiaCarroQueEntrouESaiuMaisTempo($placa,$dataLike){
+            $movimentosPares = [];
+            try{
+                $movimentoDoDia=$this->historicoDeMovimentosPorPlacas($dataLike,$placa);
+                if(is_countable($movimentoDoDia) && count($movimentoDoDia) % 2 == 0){
+                    $movimentosPares[]=$movimentoDoDia;
+                }
+
+
+                
+            }catch(Exception $e){}
+
+            return $movimentosPares;
+    }
+
 
 
     public function movimentosDosCarros($dataLike,$tipoDeSensor=1){
@@ -84,11 +99,11 @@ class RelatoriosRepository{
         $movimentos =null ;
         try{
             $sql='
-                select p.description as \'portaria\',m.placa,c.description as \'tipo\',m.created_at 
+                select m.codigo, p.description as \'portaria\',m.placa,c.description as \'tipo\',m.created_at,m.portatirasensor,m.codigosensor 
                 FROM movimentoscameras m 
                     inner join cameras c on c.id =m.portatirasensor
                     inner join portarias p on p.id =m.codigosensor
-                    where m.placa=? and (m.created_at like ?)  
+                    where m.placa=? and (m.created_at like ?)  order by m.codigo asc
             ';
             $stmt = $this->connection->prepare($sql);
             if($stmt->execute([$placa,sprintf("%%%s%%",$dataLike)])){
@@ -100,6 +115,22 @@ class RelatoriosRepository{
         return $movimentos;
     }
 
+    public function getPlacas($dataLike){
+        $placas =null ;
+        try{
+            $sql='
+                select  distinct  placa  FROM movimentoscameras  where  (created_at like ?) 
+                order by placa desc 
+            ';
+            $stmt = $this->connection->prepare($sql);
+            if($stmt->execute([sprintf("%%%s%%",$dataLike)])){
+                $placas=$stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+        }catch(Exception $e){}
+
+        return $placas;
+    }
     
 
 
