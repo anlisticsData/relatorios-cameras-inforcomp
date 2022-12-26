@@ -1,5 +1,5 @@
 <?php
-require(__DIR__."./fpdf/fpdf.php");
+require(__DIR__."/fpdf/fpdf.php");
 require_once(__DIR__."/connection.php");
 require_once(__DIR__."/RelatoriosRepository.php");
 $RelatoriosRepository =   new RelatoriosRepository(getContectionContext("inforpark_0005_0005","dev","@Dev1234","localhost"));

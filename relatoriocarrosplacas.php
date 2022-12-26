@@ -1,10 +1,33 @@
 <?php
-require(__DIR__."./fpdf/fpdf.php");
+require(__DIR__."/fpdf/fpdf.php");
 require_once(__DIR__."/connection.php");
 require_once(__DIR__."/RelatoriosRepository.php");
 $RelatoriosRepository =   new RelatoriosRepository(getContectionContext("inforpark_0005_0005","dev","@Dev1234","localhost"));
 $dataDePesquisa = (isset($_GET['dt']))? $_GET['dt'] : date("Y-m-d");
-$data = $RelatoriosRepository->TempoDePermanenciaPorDia($dataDePesquisa);
+
+
+//echo "<pre>";
+
+$placa =$_POST["placa"];
+$dtInicial=explode("-",$_POST['dtInicial']);
+$dtfinal=explode("-",$_POST['dtFinal']);
+ 
+
+
+$yearInicio = $dtInicial[0];
+$yearFim   = $dtfinal[0];
+$monthInicial = $dtInicial[1];
+$monthFinal = $dtfinal[1];
+$dayInicial= $dtInicial[2];
+$dayFinal=$dtfinal[2];
+
+
+
+
+$data = $RelatoriosRepository->TempoPorPeriodo(
+          $placa,$yearInicio,$yearFim,$monthInicial,$monthFinal,$dayInicial,$dayFinal);
+
+
 
 
 $report = array(
@@ -111,71 +134,62 @@ class PDF extends FPDF
       $lines=1;
       $registrosTotais=0;
       $registrosTotaisMovimentos=[];
+      $incosistencias = (count($this->data['data'])> 0 ) ?  $this->data['data'][count($this->data['data'])-1]['inconsitencia'] : [] ;
       $totalDeRegistros=0;
       $permaneciaMax=0;
-      $permaneciaMaxCar=null;
-      $permaneciaMim=0;
-      $permaneciaMimCar=null;
-
-
       $this->header_table_border=1;
       foreach($this->data['data'] as $key =>$historico){
+        if(isset($historico['entradas']) && isset($historico['saidas']) ){
+          $entrada=$historico['entradas'];
+          $saida=$historico['saidas'];
 
+
+          if($lines==14){
+                 $this->createdHeader();
+                 $lines=1;
+          }
+          $this->SetFont('Arial','',9);
+          $this->SetX($this->GetX()-6);
+          $this->Cell(10,10,$registrosTotais,$this->header_table_border,0,'C');
+          $this->Cell(18,10,$entrada['placa'],$this->header_table_border,0,'C');
+
+          $this->Cell(25,10,$entrada["codigo"],$this->header_table_border,0,'C');
+          $this->Cell(25,10,$saida["codigo"],$this->header_table_border,0,'C');
+          $this->Cell(95,10,$this->formatName(utf8_decode($entrada["portaria"]),59),$this->header_table_border,0,'L');
+          $this->Cell(38,10,$entrada["created_at"],$this->header_table_border,0,'C');
+          $this->Cell(38,10,$saida["created_at"],$this->header_table_border,0,'C');
+          $this->SetFont('Arial','B',12);
+
+          if($historico["permanecia"]=='00:00'){
+            $this->SetTextColor(247,26,26);
+            $this->Cell(38,10,$historico['permanecia'],$this->header_table_border,1,'C');
+          }else{
+            $this->Cell(38,10,$historico["permanecia"],$this->header_table_border,1,'C');
+          }
+          $this->SetTextColor(0,0,0);
+          $registrosTotaisMovimentos[]=array(
+            "placa"=>$entrada["placa"],"tempo"=>intval(preg_replace('/[^0-9]/', '', $historico["permanecia"]))
+          );
+
+          $totalDeRegistros+=intval(preg_replace('/[^0-9]/', '', $historico["permanecia"]));
+          if(intval(preg_replace('/[^0-9]/', '',$permaneciaMax))  < intval(preg_replace('/[^0-9]/', '', $historico["permanecia"]))){
+            $permaneciaMax =$historico["permanecia"];
+            $permaneciaMaxCar = $historico;
+          }
   
-        if($lines==14){
-          $this->createdHeader();
-          $lines=1;
+          if(intval(preg_replace('/[^0-9]/', '',$historico["permanecia"]))  > 1){
+            $permaneciaMim =$historico["permanecia"];
+            $permaneciaMimCar = $historico;
+          }
+          $registrosTotais++;
+          $lines++;
         }
-        $registrosTotais++;
-        $this->SetFont('Arial','',9);
-        $this->SetX($this->GetX()-6);
-        $this->Cell(10,10,$registrosTotais,$this->header_table_border,0,'C');
-        $this->Cell(18,10,$historico["placa"],$this->header_table_border,0,'C');
-        $this->Cell(25,10,$historico["entradaID"],$this->header_table_border,0,'C');
-        $this->Cell(25,10,$historico["saidaID"],$this->header_table_border,0,'C');
-        $this->Cell(95,10,$this->formatName(utf8_decode($historico["portaria"]),59),$this->header_table_border,0,'L');
-        $this->Cell(38,10,$historico["sentidoEntradaCreated_at"],$this->header_table_border,0,'C');
-        $this->Cell(38,10,$historico["sentidoSaidaCreated_at"],$this->header_table_border,0,'C');
-        $this->SetFont('Arial','B',12);
-        if($historico["permanecia"]=='00:00'){
-          $this->SetTextColor(247,26,26);
-          $this->Cell(38,10,$historico["permanecia"],$this->header_table_border,1,'C');
-        }else{
-          $this->Cell(38,10,$historico["permanecia"],$this->header_table_border,1,'C');
-        }
-        $this->SetTextColor(0,0,0);
-        $registrosTotaisMovimentos[]=array(
-          "placa"=>$historico["placa"],"tempo"=>intval(preg_replace('/[^0-9]/', '', $historico["permanecia"]))
-        );
-        $totalDeRegistros+=intval(preg_replace('/[^0-9]/', '', $historico["permanecia"]));
-        if(intval(preg_replace('/[^0-9]/', '',$permaneciaMax))  < intval(preg_replace('/[^0-9]/', '', $historico["permanecia"]))){
-          $permaneciaMax =$historico["permanecia"];
-          $permaneciaMaxCar = $historico;
-        }
-
-        if(intval(preg_replace('/[^0-9]/', '',$historico["permanecia"]))  > 1){
-          $permaneciaMim =$historico["permanecia"];
-          $permaneciaMimCar = $historico;
-        }
-
-
-        $lines++;
       }
-
-     
  
-   
       $totalGeral =0;
       $detalhes=array(
          "total" => $totalGeral ,
-         "observacoes" =>
-            array( 
-              array( "observacaotitle"=>"Permanecia Minima","participacao"=>$permaneciaMim,"placa"=>$permaneciaMimCar["placa"],"entrada"=>$permaneciaMimCar['sentidoEntradaCreated_at'],"saida"=>$permaneciaMimCar['sentidoSaidaCreated_at']),
-              array( "observacaotitle"=>"Permanecia Maxima","participacao"=>$permaneciaMax,"placa"=>$permaneciaMaxCar["placa"],"entrada"=>$permaneciaMaxCar['sentidoEntradaCreated_at'],"saida"=>$permaneciaMaxCar['sentidoSaidaCreated_at']),
-
-
-           )
-      );
+         "observacoes" =>$incosistencias);
 
       $this->AliasNbPages();
       $this->AddPage();
@@ -191,28 +205,59 @@ class PDF extends FPDF
     }
 
 
-    private function getRowsLine($detalhes){
+    private function headerObs(){
       $this->SetFont('Arial','B',14);
-      $this->SetX($this->GetX()+8);
-      $this->Cell(12,10,utf8_decode("Observações  Gerais "),$this->header_border,1,'C');
+      $this->SetX($this->GetX());
+      $this->Cell(12,10,utf8_decode("Inconsistência"),$this->header_border,1,'C');
       $this->SetFont('Arial','',10);
       //var_dump($detalhes['observacoes'][0]['color']);die;
-      $this->Cell(68,10,"",$this->header_table_border,0,'L');
-      $this->Cell(25,10,"Periodo",$this->header_table_border,0,'C');
-      $this->Cell(50,10,"Placa",$this->header_table_border,0,'C');
-      $this->Cell(50,10,"Entrada",$this->header_table_border,0,'C');
-      $this->Cell(50,10,"Saida",$this->header_table_border,1,'C');
+      $this->Cell(25,10,utf8_decode("Código#ID"),$this->header_table_border,0,'L');
+      $this->Cell(100,10,"Portaria",$this->header_table_border,0,'C');
+      $this->Cell(40,10,"Placa",$this->header_table_border,0,'C');
+      $this->Cell(40,10,"Entrada",$this->header_table_border,0,'C');
+      $this->Cell(40,10,"Saida",$this->header_table_border,1,'C');
+    }
 
+    private function getRowsLine($detalhes){
+   
+      $this->headerObs();
+      $rows=0;
       foreach($detalhes['observacoes'] as $index=>$detalhe){
+          
+          if($rows==8){
+            $rows =0;
+            $this->AliasNbPages();
+            $this->AddPage();
+            $this->SetFont('Times','B',25);
+            $this->Cell(40);
+            $this->Cell(200,10,utf8_decode("Resumo Geral das Movimentações do Dia Placas."),$this->header_border,0,'C');
+            $this->Ln(10);
+            $this->SetFont('Arial','B',8);
+            $this->SetFont('Arial','',10);
+            $this->Ln(20);
+            $this->SetX($this->GetX()+12);
+            $this->headerObs();
+          }
         
-          $participacao =  $detalhe['participacao'];
-          $this->Cell(68,10,utf8_decode($detalhe['observacaotitle']),$this->header_table_border,0,'L');
-          $this->Cell(25,10,sprintf("%s",$participacao),$this->header_table_border,0,'C');
-          $this->Cell(50,10,sprintf("  %s ",$detalhe['placa'])   ,$this->header_table_border,0,'C');
-          $this->Cell(50,10,sprintf("  %s ",$detalhe['entrada'])   ,$this->header_table_border,0,'C');
-          $this->Cell(50,10,sprintf(" %s ",$detalhe['saida'])   ,$this->header_table_border,0,'C');
+        
+          $entrada ="???????";
+          $saida   ="???????";
+          if($detalhe["portatirasensor"]==1){
+            $entrada = $detalhe['created_at'];
+          }
+          if($detalhe["portatirasensor"]==2){
+            $saida = $detalhe['created_at'];
+          }
+          $this->Cell(25,10,$detalhe["codigo"],$this->header_table_border,0,'L');
+          $this->Cell(100,10,utf8_decode($detalhe["portaria"]),$this->header_table_border,0,'C');
+          $this->Cell(40,10,utf8_decode($detalhe["placa"]),$this->header_table_border,0,'C');
+          $this->Cell(40,10,$entrada,$this->header_table_border,0,'C');
+          $this->Cell(40,10,$saida,$this->header_table_border,1,'C');
+      
+          $rows++;
+           
 
-          $this->Ln(10);
+          //$this->Ln(10);
 
       }
  

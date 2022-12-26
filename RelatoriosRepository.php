@@ -99,26 +99,65 @@ class RelatoriosRepository{
 
 
 
-    public function TempoPorPeriodo($placa,$dataInit,$dataFim){
+    public function TempoPorPeriodo($placa,$yearInicio,$yearFinal,$monthInicial,$monthFinal,$dayInicial,$dayFinal){
         $movimentosPares = [];
+        $entradas = [];
+        $saidas   =[];
         $calculoDeMovimentacao = [];
         $calculoDeMovimentacaoSemPAr = [];
-        
         try{
-            $movimentoDoDia=$this->historicoDeMovimentosPorPlacasPeriodo($dataInit,$dataFim,$placa);
-            $movimentosPares[]=$movimentoDoDia;
-           
-            print_r($movimentoDoDia);
+            $movimentoDoDia=$this->
+                    historicoDeMovimentosPorPlacasPeriodo(
+                        array($yearInicio,$monthInicial,$dayInicial),
+                        array($yearFinal,$monthFinal,$dayFinal),
+                        $placa);
+            $pares = 0 ;
+            $sensorAnterior = 0;             
+            foreach($movimentoDoDia as $mvdia => $dia){
+                if($dia['portatirasensor']==1){
+                    $entradas[]=$dia;
+                    $sensorAnterior=$dia['portatirasensor'];
+                    $pares++;
+                }
+                if($dia['portatirasensor'] == 2){
+                    if($sensorAnterior==1){
+                        $sensorAnterior=0;
+                        $saidas[]=$dia;
+                    }else{
+                        $calculoDeMovimentacaoSemPAr[]=$dia;
+                    }
+                    $pares++;
+                }
+                if($pares%2==0){
+                    $pares=0;
+                }
+            }   
+            
+            foreach($entradas as $index=>$entrada){
+                $intervalo = 0 ;
+                if(isset($entradas[$index])  && isset($saidas[$index])){
+                    $created_atSplit = explode(" ",$entrada['created_at']);
+                    $intervalo = $this->diffData($entradas[$index]['created_at'],$saidas[$index]['created_at']);
+                    $movimentosPares[]= array(
+                        "entradas"=>$entrada,
+                        "saidas"=> $saidas[$index],
+                        "permanecia"=>$intervalo,
+                        "data"     =>$created_atSplit[0]
+                    
+                    );
+                }
+            }
+
+            $inconsistencias = [] ;
+            foreach($calculoDeMovimentacaoSemPAr as $semPar){
+                $inconsistencias[]= $semPar;
+            }
+            $movimentosPares[]["inconsitencia"]=$inconsistencias;
          
         }catch(Exception $e){
             print_r($e);die;
         }
-
-
-      
-
-
-        return $calculoDeMovimentacao;
+        return $movimentosPares;
 }
 
 
@@ -223,18 +262,30 @@ class RelatoriosRepository{
     public function historicoDeMovimentosPorPlacasPeriodo($dataInit,$dataFim,$placa){
         $movimentos =null ;
         try{
+
             $sql='
                 select m.codigo, p.description as \'portaria\',m.placa,c.description as \'tipo\',m.created_at,m.portatirasensor,m.codigosensor 
                 FROM movimentoscameras m 
                     inner join cameras c on c.id =m.portatirasensor
                     inner join portarias p on p.id =m.codigosensor
-                    where m.placa=? and ((m.created_at like ?) or (m.created_at like ?) ) order by m.codigo asc
+                    where  ( year(m.created_at) >= ?   and year(m.created_at) <= ?  ) and 
+                           ( month(m.created_at) >= ?  and month(m.created_at) <= ?  ) and 
+                           ( day(m.created_at) >= ?   and day(m.created_at) <= ?  )   and 
+                            m.placa=?   order by m.created_at asc
             ';
             $stmt = $this->connection->prepare($sql);
-            if($stmt->execute([$placa,sprintf("%%%s%%",$dataInit),sprintf("%%%s%%",$dataFim)])){
+            if($stmt->execute([intval($dataInit[0]),
+                               intval($dataFim[0]),
+                               intval($dataInit[1]),intval($dataFim[1]),
+                               intval($dataInit[2]),intval($dataFim[2]),
+                               $placa])){
                 $movimentos=$stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             
+            //echo "<pre>";
+        //    $stmt->debugDumpParams();
+//die;
+           
         }catch(Exception $e){}
 
         return $movimentos;

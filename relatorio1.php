@@ -1,5 +1,5 @@
 <?php
-require(__DIR__."./fpdf/fpdf.php");
+require(__DIR__."/fpdf/fpdf.php");
 
 
 require_once(__DIR__."/connection.php");
