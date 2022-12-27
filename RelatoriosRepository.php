@@ -99,18 +99,16 @@ class RelatoriosRepository{
 
 
 
-    public function TempoPorPeriodo($placa,$yearInicio,$yearFinal,$monthInicial,$monthFinal,$dayInicial,$dayFinal){
+    public function TempoPorPeriodo($placa,$dataInicial,$dataFinal){
         $movimentosPares = [];
         $entradas = [];
         $saidas   =[];
         $calculoDeMovimentacao = [];
         $calculoDeMovimentacaoSemPAr = [];
         try{
-            $movimentoDoDia=$this->
-                    historicoDeMovimentosPorPlacasPeriodo(
-                        array($yearInicio,$monthInicial,$dayInicial),
-                        array($yearFinal,$monthFinal,$dayFinal),
-                        $placa);
+            $movimentoDoDia=$this->historicoDeMovimentosPorPlacasPeriodo($dataInicial,$dataFinal,$placa);
+
+          //  echo "<pre>";print_r($movimentoDoDia);die;
             $pares = 0 ;
             $sensorAnterior = 0;             
             foreach($movimentoDoDia as $mvdia => $dia){
@@ -259,11 +257,13 @@ class RelatoriosRepository{
     }
 
 
-    public function historicoDeMovimentosPorPlacasPeriodo($dataInit,$dataFim,$placa){
+    public function historicoDeMovimentosPorPlacasPeriodo($dataInicial,$dataFinal,$placa){
         $movimentos =null ;
         try{
 
-            $sql='
+            /*
+            
+               $sql='
                 select m.codigo, p.description as \'portaria\',m.placa,c.description as \'tipo\',m.created_at,m.portatirasensor,m.codigosensor 
                 FROM movimentoscameras m 
                     inner join cameras c on c.id =m.portatirasensor
@@ -272,20 +272,27 @@ class RelatoriosRepository{
                            ( month(m.created_at) >= ?  and month(m.created_at) <= ?  ) and 
                            ( day(m.created_at) >= ?   and day(m.created_at) <= ?  )   and 
                             m.placa=?   order by m.created_at asc
+            ';*/ 
+
+
+            $sql='
+                select m.codigo, p.description as \'portaria\',m.placa,c.description as \'tipo\',m.created_at,m.portatirasensor,m.codigosensor 
+                FROM movimentoscameras m 
+                    inner join cameras c on c.id =m.portatirasensor
+                    inner join portarias p on p.id =m.codigosensor
+                    where m.created_at between ? and ? and m.placa=?   order by m.created_at asc
             ';
             $stmt = $this->connection->prepare($sql);
-            if($stmt->execute([intval($dataInit[0]),
-                               intval($dataFim[0]),
-                               intval($dataInit[1]),intval($dataFim[1]),
-                               intval($dataInit[2]),intval($dataFim[2]),
-                               $placa])){
+            if($stmt->execute([$dataInicial,$dataFinal,$placa])){
                 $movimentos=$stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             
-            //echo "<pre>";
-        //    $stmt->debugDumpParams();
-//die;
-           
+            /*
+             echo "<pre>";
+            $stmt->debugDumpParams();
+ die;
+           */
+            
         }catch(Exception $e){}
 
         return $movimentos;

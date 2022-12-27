@@ -9,23 +9,14 @@ $dataDePesquisa = (isset($_GET['dt']))? $_GET['dt'] : date("Y-m-d");
 //echo "<pre>";
 
 $placa =$_POST["placa"];
-$dtInicial=explode("-",$_POST['dtInicial']);
-$dtfinal=explode("-",$_POST['dtFinal']);
+$dtInicial=$_POST['dtInicial'];
+$dtfinal=$_POST['dtFinal'];
+
  
 
+ 
 
-$yearInicio = $dtInicial[0];
-$yearFim   = $dtfinal[0];
-$monthInicial = $dtInicial[1];
-$monthFinal = $dtfinal[1];
-$dayInicial= $dtInicial[2];
-$dayFinal=$dtfinal[2];
-
-
-
-
-$data = $RelatoriosRepository->TempoPorPeriodo(
-          $placa,$yearInicio,$yearFim,$monthInicial,$monthFinal,$dayInicial,$dayFinal);
+$data = $RelatoriosRepository->TempoPorPeriodo($placa,$dtInicial,$dtfinal);
 
 
 
